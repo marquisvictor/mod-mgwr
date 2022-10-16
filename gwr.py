@@ -212,20 +212,29 @@ class GWR(GLM):
         """
         Initialize class
         """
-        if X.shape[1] > 1:
-            scaler = StandardScaler()
-            X = scaler.fit_transform(X)
-            y = scaler.fit_transform(y)
+        # if X.shape[1] > 1:    # Add functionality for if X > 1 features - lwcc
+        #     scaler = StandardScaler()
+        #     X = scaler.fit_transform(X)  # try your own standardize to trade off speed.
+        #     y = scaler.fit_transform(y)
+        # else:
+        #     self.X = X
+        #     self.y = y
+        #     self.constant = False # this doesn't hold, try to fix it asap
+
+        self.lwcc = lwcc
+
+
+        if lwcc == True:    # Add flag for turning on/off the local correlation coefficient
+            self.X = X
+            self.y = y
+            self.constant = False # this doesn't hold, try to fix it asap
 
         else:
-            return X, y
-            
-
-        print("inside GWR", X[:5])
-
+            scaler = StandardScaler()
+            X = scaler.fit_transform(X)  # try your own standardize to trade off speed.
+            y = scaler.fit_transform(y)
 
         GLM.__init__(self, y, X, family, constant=constant)
-
 
         self.constant = constant
         self.sigma2_v1 = sigma2_v1
@@ -265,7 +274,7 @@ class GWR(GLM):
         wi = self._build_wi(i, self.bw).reshape(-1, 1)  # local spatial weights
 
         if isinstance(self.family, Gaussian):
-            betas, inv_xtx_xt = _compute_betas_gwr(self.y, self.X, wi)
+            betas, inv_xtx_xt = _compute_betas_gwr(self.y, self.X, self.lwcc, wi)
             predy = np.dot(self.X[i], betas)[0]
             resid = self.y[i] - predy
             influ = np.dot(self.X[i], inv_xtx_xt[:, i])
