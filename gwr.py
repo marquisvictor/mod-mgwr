@@ -16,8 +16,6 @@ from .diagnostics import get_AIC, get_AICc, get_BIC, corr
 from .kernels import *
 from .summary import *
 import multiprocessing as mp
-from sklearn.preprocessing import StandardScaler
-
 
 class GWR(GLM):
     """
@@ -212,27 +210,16 @@ class GWR(GLM):
         """
         Initialize class
         """
-        # if X.shape[1] > 1:    # Add functionality for if X > 1 features - lwcc
-        #     scaler = StandardScaler()
-        #     X = scaler.fit_transform(X)  # try your own standardize to trade off speed.
-        #     y = scaler.fit_transform(y)
-        # else:
-        #     self.X = X
-        #     self.y = y
-        #     self.constant = False # this doesn't hold, try to fix it asap
-
         self.lwcc = lwcc
+        self.constant = constant
 
-
-        if lwcc == True:    # Add flag for turning on/off the local correlation coefficient
+        if lwcc == True:    # Flag for turning on/off the local correlation coefficient
             self.X = X
             self.y = y
-            self.constant = False # this doesn't hold, try to fix it asap
-
+            constant = False 
         else:
-            scaler = StandardScaler()
-            X = scaler.fit_transform(X)  # try your own standardize to trade off speed.
-            y = scaler.fit_transform(y)
+            X = (X - X.mean(axis=0)) / X.std(axis=0)
+            y = (y - y.mean(axis=0)) / y.std(axis=0)
 
         GLM.__init__(self, y, X, family, constant=constant)
 
