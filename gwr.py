@@ -216,7 +216,7 @@ class GWR(GLM):
         if lwcc == True:    # Flag for turning on/off the local correlation coefficient
             self.X = X
             self.y = y
-            constant = False 
+            # constant = False 
         else:
             X = (X - X.mean(axis=0)) / X.std(axis=0)
             y = (y - y.mean(axis=0)) / y.std(axis=0)
@@ -1153,7 +1153,7 @@ class GWRResults(GLMResults):
 
             for j, k in jk:
                 corr_mat[i, tag] = corr(np.cov(x[:, j], x[:, k],
-                                               aweights=wi))[0][1]
+                                               aweights=wi))[0][1]                  
                 tag = tag + 1
 
             if self.model.constant:
@@ -1165,6 +1165,13 @@ class GWRResults(GLMResults):
                 corr_mati = corr(np.cov(x.T, aweights=wi))
                 vifs_mat[i, ] = np.diag(
                     np.linalg.solve(corr_mati, np.identity((nvar))))
+            
+            # print('corr_mati', corr_mati)
+            # print('j', j)    
+            # print('k', k)    
+            # print('corr_mati', corr_mati.shape)    
+            # print('corr_mat', corr_mat.shape)   
+
 
             xw = x * wi.reshape((nrow, 1))
             sxw = np.sqrt(np.sum(xw**2, axis=0))

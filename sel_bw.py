@@ -173,7 +173,7 @@ class Sel_BW(object):
 
     """
 
-    def __init__(self, coords, y, X_loc, X_glob=None, family=Gaussian(),
+    def __init__(self, coords, y, X_loc, X_glob=None, lwcc=False, family=Gaussian(),
                  offset=None, kernel='bisquare', fixed=False, multi=False,
                  constant=True, spherical=False):
         self.coords = np.array(coords)
@@ -192,6 +192,7 @@ class Sel_BW(object):
             self.offset = offset * 1.0
         self.multi = multi
         self._functions = []
+        self.lwcc = lwcc
         self.constant = constant
         self.spherical = spherical
         self.search_params = {}
@@ -324,7 +325,7 @@ class Sel_BW(object):
 
     def _bw(self):
         gwr_func = lambda bw: getDiag[self.criterion](GWR(
-            self.coords, self.y, self.X_loc, bw, family=self.family, kernel=
+            self.coords, self.y, self.X_loc, bw, lwcc=self.lwcc, family=self.family, kernel=
             self.kernel, fixed=self.fixed, constant=self.constant, offset=self.
             offset, spherical=self.spherical).fit(lite=True, pool=self.pool))
 
