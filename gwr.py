@@ -212,14 +212,17 @@ class GWR(GLM):
         """
         self.lwcc = lwcc
         self.constant = constant
-
+        self.ymean = y.mean(axis=0)
+        self.ystd = y.std(axis=0)
         if lwcc == True:    # Flag for turning on/off the local correlation coefficient
             self.X = X
             self.y = y
-            # constant = False 
         else:
-            X = (X - X.mean(axis=0)) / X.std(axis=0)
-            y = (y - y.mean(axis=0)) / y.std(axis=0)
+            self.X = X
+            self.y = y
+            # X = (X - X.mean(axis=0)) / X.std(axis=0)
+            # y = (y - y.mean(axis=0)) / y.std(axis=0)
+
 
         GLM.__init__(self, y, X, family, constant=constant)
 
@@ -259,13 +262,21 @@ class GWR(GLM):
         Local fitting at location i.
         """
         wi = self._build_wi(i, self.bw).reshape(-1, 1)  # local spatial weights
-
         if isinstance(self.family, Gaussian):
-            betas, inv_xtx_xt = _compute_betas_gwr(self.y, self.X, self.lwcc, wi)
-            predy = np.dot(self.X[i], betas)[0]
-            resid = self.y[i] - predy
-            influ = np.dot(self.X[i], inv_xtx_xt[:, i])
-            w = 1
+            if self.lwcc == True:
+                betas, inv_xtx_xt, yw = _compute_betas_gwr(self.y, self.X, self.lwcc, wi)
+                predy = np.dot(self.X[i], betas)[0]
+                predy = (predy * yw.std()) + yw.mean()
+                # predy = (predy * self.ystd) + self.ymean
+                resid = self.y[i] - predy
+                influ = np.dot(self.X[i], inv_xtx_xt[:, i])
+                w = 1
+            else:
+                betas, inv_xtx_xt = _compute_betas_gwr(self.y, self.X, self.lwcc, wi)
+                predy = np.dot(self.X[i], betas)[0]
+                resid = self.y[i] - predy
+                influ = np.dot(self.X[i], inv_xtx_xt[:, i])
+                w = 1
 
         elif isinstance(self.family, (Poisson, Binomial)):
             rslt = iwls(self.y, self.X, self.family, self.offset, None,
